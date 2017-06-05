@@ -11,6 +11,7 @@ disp('Detecting edges of the image(s)')
 
 
 %% Find individual pieces by grouping of found edges
+pieces = 12;
 
 
 
@@ -28,3 +29,19 @@ figure, imshow(I2,[]), hold on
 plot(c2,r2,'r+'), title('edges detected');
 
 hold off
+
+
+%This normalizes the image w.r.t. color. MI thought it could help but it
+%didnt for now....
+
+% red = I1(:,:,1);
+% green = I1(:,:,2);
+% blue = I1(:,:,3);
+% 
+% S = red+ green+blue;
+% Nred = red ./S;
+% Ngreen = green ./S;
+% Nblue = blue ./S;
+% 
+% I1_norm = cat(3,Nred,Ngreen,Nblue);
+% imshow(I1_norm)
