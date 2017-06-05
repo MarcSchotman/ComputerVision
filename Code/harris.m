@@ -50,7 +50,7 @@ function [r,c] = harris(I)
     
     %All 'edges' found inside this boundery layer (which follows the edge of the 
     %pics) will be deleted
-    boundery = 10;
+    boundery = 15;
 
     %finds the corners detected within the boundery layer 
     top_side = find(r < boundery);

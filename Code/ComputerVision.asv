@@ -1,6 +1,8 @@
 %read in images
+clear all
+close all
 
-I1 = im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\puzzle1.jpg'));
+I1 = im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\puzzle_internet.jpg'));
 I2 = im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\partially_solved.jpg'));
 
 %% harris corner detection
@@ -11,21 +13,86 @@ disp('Detecting edges of the image(s)')
 
 
 %% Find individual pieces by grouping of found edges
+% pieces = 12;
+% disp('Finding piece centers')
+% y_im  = length(I1(:,10));
+% x_im  = length(I1);
+% 
+% [x_pieces1, y_pieces1] = clustering(pieces, c1, r1, x_im, y_im);
+% [x_pieces2, y_pieces2] = clustering(pieces, c2, r2, x_im, y_im);
+% %function [x_pieces,y_pieces] = Clustering(pieces,, x_points,  y_points., x_im, y_im)
 
+%% segmentiation
+I1_gray = rgb2gray(I1);
+figure, imshow(I1_gray)
+w = fspecial('gaussian',[15 15],5);
+I1_gray = imfilter(I1_gray,w);
+[~, threshold] = edge(I1_gray, 'canny');
+fudgeFactor = 0.6;
+BWs = edge(I1_gray,'canny', threshold*fudgeFactor);
+figure, imshow(BWs), title('binary gradient mask');
 
+%remove border line of white (edges is detected all around the border of
+%the image because of bad picture i guess..) Thus this noise has to be
+%removed
 
+boundery = 5;
+%left and top borders
+BWs(:,1:boundery) = 0;
+BWs(1:boundery,:) = 0;
 
+%bottom and right border
+xmax = length(BWs(1,:));
+ymax = length(BWs(:,1));
+BWs(:, xmax-boundery : xmax) = 0;
+BWs(ymax-boundery : ymax, :) =0;
+
+%stretches all the lines found in the gradient image
+se90 = strel('line', 8, 90);
+se0 = strel('line', 8, 0);
+
+BWsdil = imdilate(BWs, [se90 se0]);
+figure, imshow(BWsdil), title('dilated gradient mask');
+
+%fills the holes in the image
+BWdfill = imfill(BWsdil, 'holes');
+figure, imshow(BWdfill), title('binary image with filled holes');
+
+%smoothens the filled pieces by eroding twice with a diamond structuring
+%element
+seD = strel('diamond',1);
+BWfinal = imerode(BWdfill,seD);
+BWfinal = imerode(BWfinal,seD);
+figure, imshow(BWfinal), title('segmented image');
+
+se90 = strel('line', 5, 90);
+se0 = strel('line', 5, 0);
+%extracts outlines in the picture
+BWoutline = bwperim(BWfinal);
+BWoutline = imdilate(BWoutline, [se90 se0]);
+
+BWoutline = segmentation(I1);
+Segout = I1; 
+Segout(BWoutline) = 0; 
+figure, imshow(Segout), title('outlined original image');
+%%
+Outline = segmentation(I1);
+Segout = I1; 
+Segout(Outline) = 0; 
+figure, imshow(Segout), title('outlined original image');
 
 %% figures
 
 %plots images together with the 'edges' detected
 figure, imshow(I1,[]), hold on
 plot(c1,r1,'r+'), title('edges detected');
+plot(x_pieces1,y_pieces1,'bo');
 
 hold off
 
 figure, imshow(I2,[]), hold on
 plot(c2,r2,'r+'), title('edges detected');
+plot(x_pieces2,y_pieces2,'bo');
 
 hold off
 
