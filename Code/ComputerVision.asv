@@ -1,0 +1,21 @@
+%Computer Vision = epic
+
+I1 = im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\puzzle1.jpg'));
+I2 = im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\partially_solved.jpg'));
+
+%% 
+[r1,c1] = harris(I1);
+[r2,c2] = harris(I2);
+
+%% figures
+
+%plots images together with the 'edges' detected
+figure, imshow(I1,[]), hold on
+plot(c1,r1,'r+'), title('edges detected');
+
+hold off
+
+figure, imshow(I2,[]), hold on
+plot(c2,r2,'r+'), title('edges detected');
+
+hold off
