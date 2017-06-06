@@ -1,4 +1,6 @@
 function [Outline] = segmentation(I)
+I = im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\puzzle_internet.jpg'));
+
 %make image to grey image
 I_gray = rgb2gray(I);
 

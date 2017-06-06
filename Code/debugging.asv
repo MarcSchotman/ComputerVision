@@ -9,7 +9,7 @@ w = fspecial('gaussian',[10 10],8);
 I1_gray = imfilter(I1_gray,w);
 
 [~, threshold] = edge(I1_gray, 'canny');
-fudgeFactor = .75;
+fudgeFactor = 1.5;
 BWs = edge(I1_gray,'canny', threshold*fudgeFactor);
 figure, imshow(BWs), title('binary gradient mask');
 %%
@@ -29,8 +29,8 @@ BWs(:, xmax-boundery : xmax) = 0;
 BWs(ymax-boundery : ymax, :) =0;
 
 %stretches all the lines found in the gradient image
-se90 = strel('line', 1, 90);
-se0 = strel('line', 1, 0);
+se90 = strel('line', 10, 90);
+se0 = strel('line', 10, 0);
 
 BWsdil = imdilate(BWs, [se90 se0]);
 figure, imshow(BWsdil), title('dilated gradient mask');
@@ -184,7 +184,7 @@ while piecefound == true
     piece_number = ['piece', num2str(piece_count)];
     struct.(piece_number)= puzzle_piece;
 end
-for i = 1:24
+for i = 1:pieces
     piece_number = ['piece', num2str(i)];
     figure
     imshow(struct.(piece_number))
