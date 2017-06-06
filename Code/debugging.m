@@ -1,15 +1,15 @@
 close all
 clear all
 % for debugging
-I1 = im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\puzzle_internet.jpg'));
-
+I1 = im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\IMG_6629.jpg'));
+I1 = imresize(I1, [490 700]);
 I1_gray = rgb2gray(I1);
 figure, imshow(I1_gray)
-w = fspecial('gaussian',[10 10],8);
+w = fspecial('gaussian',[10 10],2);
 I1_gray = imfilter(I1_gray,w);
 
 [~, threshold] = edge(I1_gray, 'canny');
-fudgeFactor = .75;
+fudgeFactor = 4.5;
 BWs = edge(I1_gray,'canny', threshold*fudgeFactor);
 figure, imshow(BWs), title('binary gradient mask');
 %%
@@ -29,8 +29,8 @@ BWs(:, xmax-boundery : xmax) = 0;
 BWs(ymax-boundery : ymax, :) =0;
 
 %stretches all the lines found in the gradient image
-se90 = strel('line', 1, 90);
-se0 = strel('line', 1, 0);
+se90 = strel('line', 5, 90);
+se0 = strel('line', 5, 0);
 
 BWsdil = imdilate(BWs, [se90 se0]);
 figure, imshow(BWsdil), title('dilated gradient mask');
@@ -172,7 +172,7 @@ while piecefound == true
 
             %If no next contour line is found, stop, contour extraction completed
             if next_found == false
-                disp('piece 1 found')
+                disp(['piece ', num2str(piece_count), ' found'])
                 
                 completed = true;
                 break
@@ -180,17 +180,46 @@ while piecefound == true
         end
 
     end
-    piece_count = piece_count +1;
+    piece_count = piece_count +1
     piece_number = ['piece', num2str(piece_count)];
     struct.(piece_number)= puzzle_piece;
+   
 end
-for i = 1:24
+%%
+for i = 1:piece_count
     piece_number = ['piece', num2str(i)];
     figure
     imshow(struct.(piece_number))
 end
-%%
-puzzle1 = logical(struct.piece1);
-Segout = I1; 
-Segout(puzzle1) = 0; 
-figure, imshow(Segout), title('outlined original image');
+
+
+for i = 1
+    piece_number = ['piece', num2str(i)];
+    se90 = strel('line', 3, 90);
+    se0 = strel('line', 3, 0);
+    struct.(piece_number) = imdilate(struct.(piece_number), [se90 se0]);
+    struct.(piece_number) = imfill( struct.(piece_number), 'holes');
+    struct.(piece_number) = struct.(piece_number).*I1;
+    
+    [~, first_column] = find(struct.(piece_number)~= 0, 1, 'first');
+    [~, last_column] = find(struct.(piece_number)~= 0, 1, 'last');
+    
+    first_row_found =0;
+    
+    for j = 1:length(struct.(piece_number)(:,1))
+        if sum(struct.(piece_number)(j,:)) ~= 0 && first_row_found ==0
+            first_row = j;
+            first_row_found = 1;
+        end
+        
+        if first_row_found==1 && sum(struct.(piece_number)(j,:)) == 0 
+            last_row = j;
+            break
+        end
+    end
+    
+    
+
+    struct.(piece_number) = struct.(piece_number)(first_row:last_row, first_column:last_column);
+end
+
