@@ -1,15 +1,16 @@
-function [struct] = find_contours(I, number_of_pieces)
+function [struct] = find_contours(I_origin, number_of_pieces)
 %If there are more pieces found then number_of_pieces it will riterate and
 %increase certain parameters with the iteration factor. The iteration
 %factor is increased by 0.25 for every iteration needed. (this did not gave
 %proper results yet though)
-iterations = 20;
+I = I_origin;
+iterations = 40;
 iteration_factor =1;
 for n = iterations
     %resize to reduce computational effort and convert to gray image if it's
     %not already
     
-    if(size(I,3)> 1)
+    if(size(I,3)> I)
       I = rgb2gray(I) ;
     end
     
@@ -28,7 +29,7 @@ for n = iterations
 
     %find the edges of the picture using the 'canny' approximation
     [~, threshold] = edge(I, 'canny');
-    fudgeFactor = 5*iteration_factor;
+    fudgeFactor = 3*iteration_factor;
     I = edge(I,'canny', threshold*fudgeFactor);
     %%
     %remove border line of white (edges is detected all around the border of
@@ -48,8 +49,18 @@ for n = iterations
 
     %stretches all the lines found in the gradient image in order to make sure
     %they make a closed perimeter which can be filled with the next function
-    se90 = strel('line', 5*iteration_factor, 90);
-    se0 = strel('line', 5*iteration_factor, 0);
+    
+    %increasing the line thickness is critical in finding the all the
+    %pieces and only the pieces. It either has to be thin or thick either
+    %to not touch other pieces or to close gaps that have occured. Thus
+    %this switches between very thin or quit large.
+    %This makes the line thickness vary like: [  1.0000    5.0000    3.3750   
+    %7.0000    8.0000    9.0000   15.6250   11.0000   27.0000   13.0000   42.8750]
+    
+    zero_or_one = 1+ (-1)^(iteration_factor*100);
+    
+    se90 = strel('line', 4*iteration_factor*(iteration_factor/2)^zero_or_one, 90);
+    se0 = strel('line', 4*iteration_factor*(iteration_factor/2)^zero_or_one, 0);
     I = imdilate(I, [se90 se0]);
 
     %fills the holes in the image
@@ -208,15 +219,56 @@ for n = iterations
     end
     %if number of pieces found is not equal to the actual number of pieces
     %it will iterate
-    if piece_count > number_of_pieces
-        iteration_factor = iteration_factor + 0.25;
-    else
+    if piece_count == number_of_pieces
         break
+    else
+        
+        iteration_factor = iteration_factor + 0.25;
     end
     if n ==20 
+        
         disp('max iterations reached')
     end
     
+end
+
+% extracts the pieces from the original picture I_origin using the found
+% contours.
+for i = 1:piece_count
+    
+    
+    piece_number = ['piece', num2str(i)];
+    
+    
+    [row1,col1] = find(struct.(piece_number));
+    
+    %increases the thickness of the line. THe contours are not perfect thus
+    %the it is increased bt 3 pixels.
+    se90 = strel('line', 3, 90);
+    se0 = strel('line', 3, 0);
+    struct.(piece_number) = imdilate(struct.(piece_number), [se90 se0]);
+    
+    
+    filled = imfill(struct.(piece_number), 'holes');
+    extracted_piece =[];
+    for pp  = 1:length(filled(:,1))
+        for qq  = 1:length(filled(1,:))
+            if filled(pp,qq)~=0
+                extracted_piece((pp-min(row1))+2,(qq-min(col1))+2,:) = I_origin(pp,qq,:);
+            end
+        end
+    end
+    % Before this loop the background is black, this loop replaces the
+    % background with its original pixels
+    for rr=1:length(extracted_piece(:,1,1))
+        for ss = 1:length(extracted_piece(1,:,1))
+            if extracted_piece(rr,ss,1)==0
+                extracted_piece(rr,ss,:) = I_origin(rr+min(row1),ss+min(col1),:);
+            end
+        end
+    end
+    struct.(piece_number) = extracted_piece;
+
 end
 
 

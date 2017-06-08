@@ -1,8 +1,8 @@
 close all
 clear all
 % for debugging
-I1 = im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\IMG_6629.jpg'));
-I1 = imresize(I1, [490 700]);
+I_origin = im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\IM2.jpg'));
+I1 = imresize(I_origin, [490 700]);
 I1_gray = rgb2gray(I1);
 figure, imshow(I1_gray)
 w = fspecial('gaussian',[10 10],2);
@@ -94,7 +94,8 @@ while piecefound == true
         %go to next y coordinate
         if contour_found == false    
             
-            %if nothing is found in the entire picture
+            %if nothing is found in the entire picture, then the picture is
+            %empty and all contours must have been found, thus stop loop.
             if y == length(search_image(:,1)) && x == length(search_image)
                 piecefound = false;
                 break
@@ -180,46 +181,54 @@ while piecefound == true
         end
 
     end
-    piece_count = piece_count +1
-    piece_number = ['piece', num2str(piece_count)];
-    struct.(piece_number)= puzzle_piece;
+    if piecefound == true
+        piece_count = piece_count +1
+        piece_number = ['piece', num2str(piece_count)];
+        struct.(piece_number)= puzzle_piece;
+    end
    
 end
 %%
+
+
 for i = 1:piece_count
+    
+    
+    piece_number = ['piece', num2str(i)];
+    
+    [row1,col1] = find(struct.(piece_number));
+    
+    se90 = strel('line', 3, 90);
+    se0 = strel('line', 3, 0);
+    struct.(piece_number) = imdilate(struct.(piece_number), [se90 se0]);
+    
+    
+    filled = imfill(struct.(piece_number), 'holes');
+    piece_1_intensity =[];
+    for pp  = 1:length(filled(:,1))
+        for qq  = 1:length(filled(1,:))
+            if filled(pp,qq)~=0
+                piece_1_intensity((pp-min(row1))+2,(qq-min(col1))+2,:) = I1(pp,qq,:);
+            end
+        end
+    end
+    % Before this loop the background is black, this loop replaces the
+    % background with its original pixels
+    
+    for rr=1:length(piece_1_intensity(:,1,1))
+        for ss = 1:length(piece_1_intensity(1,:,1))
+            if piece_1_intensity(rr,ss,1)==0
+                piece_1_intensity(rr,ss,:) = I1(rr+min(row1),ss+min(col1),:);
+            end
+        end
+    end
+    struct.(piece_number) = piece_1_intensity;
+
+end
+%%
+
+for i = 1:12
     piece_number = ['piece', num2str(i)];
     figure
     imshow(struct.(piece_number))
 end
-
-
-for i = 1
-    piece_number = ['piece', num2str(i)];
-    se90 = strel('line', 3, 90);
-    se0 = strel('line', 3, 0);
-    struct.(piece_number) = imdilate(struct.(piece_number), [se90 se0]);
-    struct.(piece_number) = imfill( struct.(piece_number), 'holes');
-    struct.(piece_number) = struct.(piece_number).*I1;
-    
-    [~, first_column] = find(struct.(piece_number)~= 0, 1, 'first');
-    [~, last_column] = find(struct.(piece_number)~= 0, 1, 'last');
-    
-    first_row_found =0;
-    
-    for j = 1:length(struct.(piece_number)(:,1))
-        if sum(struct.(piece_number)(j,:)) ~= 0 && first_row_found ==0
-            first_row = j;
-            first_row_found = 1;
-        end
-        
-        if first_row_found==1 && sum(struct.(piece_number)(j,:)) == 0 
-            last_row = j;
-            break
-        end
-    end
-    
-    
-
-    struct.(piece_number) = struct.(piece_number)(first_row:last_row, first_column:last_column);
-end
-

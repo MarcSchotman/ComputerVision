@@ -3,56 +3,34 @@ clear all
 close all
 
 number_of_pieces = 12;
-I1 = imresize(im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\IM1.jpg')), [490 700]);
-I2 = imresize(im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\IM2.jpg')), [490 700]);
-I3 = imresize(im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\IM3.jpg')), [490 700]);
-I4 = imresize(im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\IM4.jpg')), [490 700]);
-I5 = imresize(im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\IM5.jpg')), [490 700]);
+I1 = imresize(im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\IM1.jpg')), [864 1296]);
+% I2 = imresize(im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\IM2.jpg')), [490 700]);
+% I3 = imresize(im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\IM3.jpg')), [490 700]);
+% I4 = imresize(im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\IM4.jpg')), [490 700]);
+% I5 = imresize(im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\IM5.jpg')), [490 700]);
 
 %% Find contours
-contours_image1 = find_contours(I1,number_of_pieces);
-contours_image2 = find_contours(I2,number_of_pieces);
-contours_image3 = find_contours(I3,number_of_pieces);
-contours_image4 = find_contours(I4,number_of_pieces);
-contours_image5 = find_contours(I5,number_of_pieces);
+[puzzle, piece_count1] = find_pieces(I1,number_of_pieces);
+% [puzzle_pieces2, piece_count2] = find_pieces(I2,number_of_pieces);
+% [puzzle_pieces3, piece_count3] = find_pieces(I3,number_of_pieces);
+% [puzzle_pieces4, piece_count4] = find_pieces(I4,number_of_pieces);
+% [puzzle_pieces5, piece_count5] = find_pieces(I5,number_of_pieces);
 
-%% Figures of contours
-
-%% Stuff that works but is not needed now
-
-
-% %% harris corner detection
-% disp('Detecting edges of the image(s)')
-% 
-% [r1,c1] = harris(I1);
-% [r2,c2] = harris(I2);
-
-
-% %% figures
-% 
-% %plots images together with the 'edges' detected
-% figure, imshow(I1,[]), hold on
-% plot(c1,r1,'r+'), title('edges detected');
-% 
-% hold off
-% 
-% figure, imshow(I2,[]), hold on
-% plot(c2,r2,'r+'), title('edges detected');
-% 
-% hold off
-
-
-%This normalizes the image w.r.t. color. MI thought it could help but it
-%didnt for now....
-
-% red = I1(:,:,1);
-% green = I1(:,:,2);
-% blue = I1(:,:,3);
-% 
-% S = red+ green+blue;
-% Nred = red ./S;
-% Ngreen = green ./S;
-% Nblue = blue ./S;
-% 
-% I1_norm = cat(3,Nred,Ngreen,Nblue);
-% imshow(I1_norm)
+%% figures 
+figure
+hold on
+for i =1:number_of_pieces
+    piece = ['piece' , num2str(i)];
+    I = puzzle.(piece).Image;
+    
+    tresh = 0.002;
+    [r,c] = corners_of_pieces(I,tresh);
+    
+    subplot(3,4,i)
+    
+    hold on
+    imshow(I)
+    plot(c,r,'r+')
+    hold off
+end
+    

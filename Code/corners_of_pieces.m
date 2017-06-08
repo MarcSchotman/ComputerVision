@@ -1,4 +1,4 @@
-function [r,c] = harris(I,tresh)
+function [r,c] = corners_of_pieces(I,tresh)
    
 
     if(size(I,3) > 1)
@@ -7,19 +7,10 @@ function [r,c] = harris(I,tresh)
         I_grey = I;
     end
     
-    %maybe increasing constrast helps, nto sure yet
-%     low_in = min(min(I_grey));
-%     high_in = max(max(I_grey));
-%     
-%     low_out = 0.01;
-%     high_out = 0.99;
-%    
-%     I_grey = imadjust(I_grey, [low_in; high_in], [low_out; high_out]);
-
     %% % Creation of a centered gaussian kernal
-    w = fspecial('gaussian',[15 15],2);
-    I_grey = imfilter(I_grey,w);%,'conv','same'); %maybe 'conv' here? 
-
+     w = fspecial('gaussian',[15 15],2);
+%     I_grey = imfilter(I_grey,w);%,'conv','same'); %maybe 'conv' here? 
+% 
 
     %[Gx,Gy] = imgradientxy(gauss_image,'IntermediateDifference');
     
@@ -42,17 +33,19 @@ function [r,c] = harris(I,tresh)
     lambda_2 = (a+c)/2 - sqrt(b.^2+((a-c)/2).^2);
 
     % Harris feature matrix 
-    alpha = 0.001;
+    alpha = 0.0005;
     harris_im = lambda_1.*lambda_2 - alpha.*((lambda_1 + lambda_2).^2);
     radius = 1;
-    %thresh = 0.000002;
   
 
     [r, c] = nonmaxsuppts(harris_im, radius, tresh, I);
     
+    
+   
+    
     %All 'edges' found inside this boundery layer (which follows the edge of the 
     %pics) will be deleted
-    boundery = 0;
+    boundery = 2;
 
     %finds the corners detected within the boundery layer 
     top_side = find(r < boundery);
@@ -65,3 +58,4 @@ function [r,c] = harris(I,tresh)
     
     r(delete) = [];
     c(delete) = [];
+    
