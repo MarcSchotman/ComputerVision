@@ -35,6 +35,7 @@ function [r,c] = corners_of_pieces(I,tresh)
     % Harris feature matrix 
     alpha = 0.0005;
     harris_im = lambda_1.*lambda_2 - alpha.*((lambda_1 + lambda_2).^2);
+   
     radius = 1;
   
 

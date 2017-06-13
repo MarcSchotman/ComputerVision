@@ -5,7 +5,8 @@ function [struct, piece_count] = find_pieces(I, number_of_pieces)
 %proper results yet though)
 
 
-
+%number_of_pieces = 12;
+%I = imresize(im2double(imread('C:\Users\joemachey\Desktop\Space Exploration\Computer Vision\Project\ComputerVision\Pictures\IM1.jpg')), [864 1296]);
 I_origin = I;
 %resize to reduce computational effort and convert to gray image if it's
 %not already
@@ -14,9 +15,7 @@ if(size(I,3)> I)
     I_grey = rgb2gray(I) ;
 end
 
-
 wanted_size= [490, 700];
-
 
 I = imresize(I_grey, wanted_size);
 %applygaussian filter to reduce noise
@@ -65,6 +64,8 @@ se0 = strel('line', 1, 0);
 %extracts outlines in the picture
 I = bwperim(I);
 I = imdilate(I, [se90 se0]);
+figure
+imshow(I)
 %% Contour determination
 
 %This algorithm searches the image wich now contains the contours. The
@@ -222,9 +223,10 @@ for k = 1:piece_count
     filled = imfill(struct.(piece_number).Image, 'holes');
     extracted_piece =[];
     
-    boundery = 15; 
-    first_row = min(row1) - boundery;
-    first_column = min(col1) - boundery;
+    first_row = min(row1); %- boundery;
+    first_column = min(col1);% - boundery;
+    last_row = max(row1);
+    last_column = max(col1);
     
     for i  = first_row:length(filled(:,1))
         for j  = first_column:length(filled(1,:))
@@ -235,16 +237,28 @@ for k = 1:piece_count
     end
     % Before this loop the background is black, this loop replaces the
     % background with its original pixels
-    for i = 1:length(extracted_piece(:,1,1) + boundery)
-        for j = 1:length(extracted_piece(1,:,1) + boundery )
+    for i = 1:length(extracted_piece(:,1,1) )%+ boundery)
+        for j = 1:length(extracted_piece(1,:,1) )%+ boundery )
             if extracted_piece(i,j,1)==0 
                 extracted_piece(i,j,:) = I_origin(i + first_row, j + first_column,:);
             end
         end
     end
+    % Marc this is a pretty stupid hard code way to do it, but it does the
+    % job. 
+    % Creating a boundary around the image in order to achieve clearer
+    % conours and therefore gradients 
+    boundary = 10; 
+    Left_boundary  = I_origin(first_row:last_row,first_column-boundary:first_column-1,:);
+    Right_boundary = I_origin(first_row:last_row,last_column+1:last_column+boundary,:);
+    Upper_boundary = I_origin(first_row-boundary:first_row-1,first_column-boundary:last_column+boundary,:);
+    Lower_boundary = I_origin(last_row+1:last_row+boundary,first_column-boundary:last_column+boundary,:);
+    
+    extracted_piece  = [Left_boundary, extracted_piece];
+    extracted_piece  = [extracted_piece Right_boundary];
+    extracted_piece = [Upper_boundary; extracted_piece];
+    extracted_piece = [extracted_piece; Lower_boundary];
+    
     struct.(piece_number).Image = extracted_piece;
-
-end
-
 
 end

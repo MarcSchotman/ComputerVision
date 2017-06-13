@@ -4,8 +4,8 @@ close all
 
 number_of_pieces = 12;
 I1 = imresize(im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\IM1.jpg')), [864 1296]);
-% I2 = imresize(im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\IM2.jpg')), [490 700]);
-% I3 = imresize(im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\IM3.jpg')), [490 700]);
+% I2 = imresize(im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\IM2.jpg')), [864 1296]);
+% I3 = imresize(im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\IM3.jpg')), [864 1296]);
 % I4 = imresize(im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\IM4.jpg')), [490 700]);
 % I5 = imresize(im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pictures\IM5.jpg')), [490 700]);
 
@@ -18,11 +18,10 @@ I1 = imresize(im2double(imread('C:\Users\Marc\Documents\GitHub\ComputerVision\Pi
 
 %% figures 
 figure
-hold on
+
 for i =1:number_of_pieces
     piece = ['piece' , num2str(i)];
     I = puzzle.(piece).Image;
-    
     tresh = 0.002;
     [r,c] = corners_of_pieces(I,tresh);
     
